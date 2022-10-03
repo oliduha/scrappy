@@ -16,6 +16,7 @@ TP3 réalisé avec [skoll09](https://github.com/skoll09/ScrapPy)
 - affichage des headers
 - affichage des cookies
 - création de fonctions
+- gestion des exceptions
 - transformation en module et appel de celui-ci dans le main.py
 - ajout d'une interface graphique (DearPyGui)
 - ajout de contrôles :
