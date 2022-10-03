@@ -33,6 +33,7 @@ TP3 réalisé avec [skoll09](https://github.com/skoll09/ScrapPy)
 - affichage des cookies de n'importe quel site
 - ajout d'un easter-egg
 - export du projet en exe (avec auto-py-to-exe en mode 1 fichier)
+- ajout de la possibilité d'exporter dans 1 seul fichier si toutes les pages sont sélectionnée
 
 ## Captures
 
