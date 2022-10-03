@@ -4,6 +4,22 @@ import scraper
 import base64
 from datetime import datetime
 import dearpygui.dearpygui as dpg
+import sys
+import os
+
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    print(base_path)
+
+    return os.path.join(base_path, relative_path)
+
 
 url = 'https://www.frameip.com/liste-des-ports-tcp-udp/'
 list_titre = []
@@ -28,7 +44,7 @@ btn_scrap_txt = "Scrap !"
 btn_scrap_en = True
 status_txt = ''
 status_color = (50, 150, 255, 255)
-img = ["img/led_off.png", "img/led_green.png", "img/led_red.png"]
+img = [resource_path("img/led_off.png"), resource_path("img/led_green.png"), resource_path("img/led_red.png")]
 now = datetime.now()
 
 
@@ -276,6 +292,8 @@ except requests.RequestException as e:
     print(str(e))
 except KeyboardInterrupt:
     print(f"{col_yellow}\nLe programme a été fermé.{col_end}")
+except Exception as e:
+    print("Erreur inconnue !" + e)
 
 # On parse le html avec BeautifulSoup
 try:

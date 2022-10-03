@@ -27,7 +27,7 @@ def scrap(url_scrap='https://www.frameip.com/liste-des-ports-tcp-udp/?plage=1',
 
     print()
     print(col_yellow + "Page à traiter : " + col_end)
-    print(url)
+    print(url_scrap)
 
     # On parse le html avec BeautifulSoup
     table = bs4.BeautifulSoup(req.content, "html.parser").find("table")
