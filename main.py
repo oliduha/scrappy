@@ -16,8 +16,7 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
 
-    print(base_path)
-
+    # print(base_path)
     return os.path.join(base_path, relative_path)
 
 
@@ -29,7 +28,8 @@ list_p = []
 list_a = []
 list_elem = []
 b = ''
-# cf : https://stackoverflow.com/questions/287871/how-do-i-print-colored-text-to-the-terminal
+# Pour les couleurs cf : https://stackoverflow.com/questions/287871/how-do-i-print-colored-text-to-the-terminal
+# Ne fonctionne que sous Windows, pour être portable, utiliser une bibliothèque dédiée
 col_red = '\033[91m'
 col_green = '\33[92m'
 col_yellow = '\033[93m'
@@ -92,6 +92,7 @@ def custom_cookies_callback():
 
 
 def get_custom_cookies_callback():
+    # TODO Vérifier la syntax des urls entrées par l'utilisateur
     url_c = dpg.get_value("cust_cookies_url_input")
     print(url_c)
     # on récupère les cookies
@@ -119,6 +120,7 @@ def check_callback(sender, app_data, user_data):
 
 
 def btn_cb_all_callback():
+    # TODO Ajouter la possibilité de ne créer qu'un seul fichier si toutes les pages sont sélectionnées
     global pages_to_export
     cbs = dpg.get_item_children(grp_checkbox)
     pages_to_export = []
@@ -224,6 +226,7 @@ def test_cnx_callback(sender, app_data, user_data):
         dpg.configure_item(btn_scrap, enabled=True, label="Scrap !")
         dpg.configure_item(btn_header, show=True)
         dpg.configure_item(btn_cookie, show=True)
+        dpg.configure_item(btn_cust_cookie, show=True)
         dpg.configure_item(btn_cb_all, show=True)
         dpg.configure_item(btn_cb_none, show=True)
         connected = True
@@ -241,6 +244,7 @@ def test_cnx_callback(sender, app_data, user_data):
         dpg.configure_item(grp_checkbox, show=False)
         dpg.configure_item(btn_header, show=False)
         dpg.configure_item(btn_cookie, show=False)
+        dpg.configure_item(btn_cust_cookie, show=False)
         dpg.configure_item(btn_cb_all, show=False)
         dpg.configure_item(btn_cb_none, show=False)
         connected = False
@@ -293,7 +297,7 @@ except requests.RequestException as e:
 except KeyboardInterrupt:
     print(f"{col_yellow}\nLe programme a été fermé.{col_end}")
 except Exception as e:
-    print("Erreur inconnue !" + e)
+    print("Erreur inconnue !" + str(e))
 
 # On parse le html avec BeautifulSoup
 try:
@@ -389,8 +393,6 @@ with dpg.window(tag="prim_win"):
                                 parent="grp_grp_btn",
                                 indent=70,
                                 show=btn_head_cook_show)
-    # with dpg.tooltip("btn_headers"):
-    #     dpg.add_text("Afficher les en-têtes de la page")
     dpg.add_drawlist(width=200, height=10, parent="grp_grp_btn")
     btn_cookie = dpg.add_button(label="Afficher les cookies",
                                 callback=cookies_callback,
@@ -407,18 +409,12 @@ with dpg.window(tag="prim_win"):
                                      parent="grp_grp_btn",
                                      indent=70,
                                      show=btn_head_cook_show)
-    # with dpg.tooltip("btn_cookies"):
-    #     dpg.add_text("Afficher les biscuits du site")
     grp_cb_btn = dpg.add_group(tag="grp_cb_btn", horizontal=True, horizontal_spacing=10)
     dpg.add_drawlist(width=0, height=17, parent="grp_cb_btn")
     btn_cb_all = dpg.add_button(label="Tous", tag="btn_cb_all", indent=18, width=40, height=20,
                                 parent="grp_cb_btn", show=btn_cb_show, callback=btn_cb_all_callback)
-    # with dpg.tooltip("btn_cb_all"):
-    #     dpg.add_text("Sélectionner toutes les pages")
     btn_cb_none = dpg.add_button(label="Aucun", tag="btn_cb_none", width=40, height=20,
                                  parent="grp_cb_btn", show=btn_cb_show, callback=btn_cb_none_callback)
-    # with dpg.tooltip("btn_cb_none"):
-    #     dpg.add_text("Ne sélectionner aucune page")
     with dpg.drawlist(width=500, height=30):
         dpg.draw_line((0, 5), (470, 5), color=(255, 0, 0, 255), thickness=1)
     dpg.add_radio_button(items=["CSV", "JSON", "CSV & JSON"],
