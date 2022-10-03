@@ -19,108 +19,135 @@ col_red = '\033[91m'
 col_green = '\33[92m'
 col_yellow = '\033[93m'
 col_end = '\033[0m'
-list_a = []
-list_titre = []
 
 
-def scrap(url_scrap='https://www.frameip.com/liste-des-ports-tcp-udp/?plage=1',
-          file_name="file_name", make_csv=True, make_json=False):
+def scrap(links, make_csv=True, make_json=False, aio=False):
+    list_titre = []
+    list_a = []
+    list_csv = []
+    dict_json = {}
+    file_name = ""
 
-    # On récupère le contenu de la page en cours
-    req_scrap = requests.get(url_scrap)
+    for i in range(len(links)):
+        file_name = links[i][0]
+        link = links[i][1]
+        # On récupère le contenu de la page en cours
+        req_scrap = requests.get(link)
 
-    print()
-    print(col_yellow + "Page à traiter : " + col_end)
-    print(url_scrap)
+        print()
+        print(col_yellow + "Lecture de la page : " + col_end)
+        print(f"{file_name} [{links[i]}]")
 
-    # On parse le html avec BeautifulSoup
-    table = bs4.BeautifulSoup(req_scrap.content, "html.parser").find("table")
+        # On parse le html avec BeautifulSoup
+        table = bs4.BeautifulSoup(req_scrap.content, "html.parser").find("table")
 
-    list_b = table.findAll('b')  # On récupère tous les <b> de la table
-    list_tr = table.findAll('tr')  # On récupère tous les <tr> de la table
+        list_b = table.findAll('b')  # On récupère tous les <b> de la table
+        list_tr = table.findAll('tr')  # On récupère tous les <tr> de la table
 
-    # On ajoute le texte des <b> dans la liste
-    for t in list_b:
-        list_titre.append(t.text)
+        # On ajoute le texte des <b> dans la liste
+        for t in list_b:
+            list_titre.append(t.text)
 
-    # Pour chaque ligne
-    for tr in list_tr:
-        list_td = tr.findAll('td')
-        for td in list_td:
-            list_p = td.find('p')
-            for p in list_p:
-                # Si le contenu n'est pas un \n
-                if p != "\n":
-                    # Si <a> est présent
-                    if td.find('a'):
-                        list_a.append(p.text.strip())
-                    else:
-                        list_a.append(p.text.strip())
+        # Pour chaque ligne
+        for tr in list_tr:
+            list_td = tr.findAll('td')
+            for td in list_td:
+                list_p = td.find('p')
+                for p in list_p:
+                    # Si le contenu n'est pas un \n
+                    if p != "\n":
+                        # Si <a> est présent
+                        if td.find('a'):
+                            list_a.append(p.text.strip())
+                        else:
+                            list_a.append(p.text.strip())
+
+        if make_csv:
+            print(col_yellow + "Préparation des donnée csv..." + col_end)
+            if i == 0:
+                list_csv = [list_titre]
+            if aio:
+                list_csv += prepare_scv(list_a, file_name)
+                file_name = "Port de 0 à 65535"
+            else:
+                list_csv = [list_titre]
+                list_csv += prepare_scv(list_a, file_name)
+
+        if make_json:
+            print(col_yellow + "Préparation des donnée json..." + col_end)
+            if aio:
+                dict_json = {**dict_json, **prepare_json(list_tr, file_name)}
+                file_name = "Port de 0 à 65535"
+            else:
+                dict_json = prepare_json(list_tr, file_name)
 
     if make_csv:
-        create_scv(file_name)
-
+        create_scv(list_csv, file_name)
     if make_json:
-        create_json(file_name, list_tr)
+        create_json(dict_json, file_name)
 
 
-def create_scv(csv_file_name):
+def prepare_scv(lst_a, csv_file_name):
     # CSV FILE ###################################################
-    print(f"{col_yellow}Création du fichier {csv_file_name}.csv...{col_end}")
-    # On supprime les 4 premiers éléments (les titres) de la liste
-    list_elem = list_a[4:]
+    print(f"{col_yellow}Traitement des données de {csv_file_name} pour csv...{col_end}")
 
-    copy_el = list_elem
-    list_csv = [list_titre]
+    # On supprime les 4 premiers éléments (les titres) de la liste
+    list_elem = lst_a[4:]
+    list_csv = []
 
     for i in range(0, len(list_elem), 4):
-        list_csv.append(copy_el[i:i + 4])
+        list_csv.append(list_elem[i:i + 4])
 
     # On vérifie l'existence de l'arborescence et on la crée si besoin
     if not os.path.exists("exports/csv"):
         os.makedirs("exports/csv")
+
+    return list_csv
+
+
+def create_scv(data, csv_file_name):
+    csv_file_name = csv_file_name.replace(" ", "_")
     # On écrit dans le fichier csv les éléments de chaque ligne
     with open("exports/csv/"+csv_file_name+'.csv', 'w', newline='', encoding='utf8') as csvfile:
         writer = csv.writer(csvfile, delimiter=';')
-        for row in list_csv:
+        for row in data:
             writer.writerow(row)
 
     print(col_green + "Fichier "+csv_file_name+".csv créé !" + col_end)
 
 
-def create_json(json_file_name, list_tr):
+def prepare_json(list_tr, json_file_name):
     # JSON FILE #####################################################################
-    # On crée un dictionnaire avec les listes de titres et d'éléments de chaque ligne
-    list_data = []
-    print(f"{col_yellow}Création du fichier {json_file_name}.json...{col_end}")
-    for tr in list_tr:
-        dict_tr = {
-            "nom": "",
-            "num": "",
-            "proto": "",
-            "desc": ""
-        }
-        list_td = tr.findAll('td')
-        dict_tr["nom"] = list_td[0].text.strip()
-        dict_tr["num"] = list_td[1].text.strip()
-        dict_tr["proto"] = list_td[2].text.strip()
-        dict_tr["desc"] = list_td[3].text.strip()
-        list_data.append(dict_tr)
+    print(f"{col_yellow}Traitement des données de {json_file_name} pour json...{col_end}")
 
-    # On crée le dictionnaire avec la structure attendue
+    # Suppression des titres
+    lines_soups = list_tr[1:]
+
+    # 3. Structurer les données
     dict_json = {}
-    for line in list_data:
-        dict_json[line["num"]] = {}
-    for line in list_data:
-        if line["proto"] not in dict_json[line["num"]]:
-            dict_json[line["num"]][line["proto"]] = {}
-    for line in list_data:
-        if line["nom"] not in dict_json[line["num"]][line["proto"]]:
-            dict_json[line["num"]][line["proto"]][line["nom"]] = line["desc"]
-    # print(f"dict_json : {dict_json}")
+    for line_soup in lines_soups:
+        columns_soups = line_soup.find_all("p")
+        port_name = columns_soups[0].string.strip()
+        port_number = int(columns_soups[1].find("a").string)  # Ajout du parsing
+        port_protocol = columns_soups[2].find("a").string
+        port_description = columns_soups[3].string.strip()
+
+        if port_number not in dict_json:
+            dict_json[port_number] = {}
+        if port_protocol not in dict_json[port_number]:
+            dict_json[port_number][port_protocol] = {}
+        dict_json[port_number][port_protocol][port_name] = port_description
+
+    return dict_json
+
+
+def create_json(dict_json, json_file_name):
+    json_file_name = json_file_name.replace(" ", "_")
     # On vérifie l'existence de l'arborescence
     if not os.path.exists("exports/json"):
+        # Et on la crée si besoin
         os.makedirs("exports/json")
+
     # On écrit dans le fichier json les éléments de dict_json
     with open("exports/json/"+json_file_name+'.json', 'w', encoding='utf8') as jsonfile:
         json.dump(dict_json, jsonfile, indent=4)

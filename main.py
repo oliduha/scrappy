@@ -3,6 +3,7 @@ import bs4
 import scraper
 import base64
 from datetime import datetime
+import time
 import dearpygui.dearpygui as dpg
 import sys
 import os
@@ -40,6 +41,7 @@ connected = True
 init = False
 csv_flag = True
 json_flag = False
+one_file = False
 btn_scrap_txt = "Scrap !"
 btn_scrap_en = True
 status_txt = ''
@@ -109,6 +111,7 @@ def get_custom_cookies_callback():
 
 def check_callback(sender, app_data, user_data):
     global pages_to_export
+    global one_file
     if app_data:
         pages_to_export.append(user_data)
     else:
@@ -117,6 +120,12 @@ def check_callback(sender, app_data, user_data):
         dpg.configure_item("btn_scrap", enabled=False, label="Rien à scraper")
     else:
         dpg.configure_item("btn_scrap", enabled=True, label="Scrap !")
+    if len(pages_to_export) == 9:
+        dpg.configure_item("cb_one_file", show=True)
+    else:
+        dpg.configure_item("cb_one_file", show=False)
+        dpg.set_value("cb_one_file", False)
+        one_file = False
 
 
 def btn_cb_all_callback():
@@ -128,15 +137,28 @@ def btn_cb_all_callback():
         pages_to_export.append(dpg.get_item_user_data(cb))
         dpg.set_value(cb, True)
     dpg.configure_item("btn_scrap", enabled=True, label="Scrap !")
+    dpg.configure_item("cb_one_file", show=True)
 
 
 def btn_cb_none_callback():
     global pages_to_export
+    global one_file
     pages_to_export = []
     cbs = dpg.get_item_children(grp_checkbox)
     for cb in cbs[1]:
         dpg.set_value(cb, False)
     dpg.configure_item("btn_scrap", enabled=False, label="Rien à scraper")
+    dpg.set_value("cb_one_file", False)
+    dpg.configure_item("cb_one_file", show=False)
+    one_file = False
+
+
+def cb_one_file_callback(sender):
+    global one_file
+    if sender:
+        one_file = True
+    else:
+        one_file = False
 
 
 def radio_callback(sender, app_data):
@@ -158,43 +180,53 @@ def exit_popup(sender):
 
 
 def scrap_callback():
-    # On crée une fenêtre pour afficher la progression du scrap et le résultat final
-    with dpg.window(label="", width=420, height=150, no_resize=True, pos=(35, 80), on_close=exit_popup, modal=True):
-        title_popup = dpg.add_text("Scrap en cours...", tag="title_popup")
-        pb = dpg.add_progress_bar(label="progress_bar", width=400, height=20, default_value=0)
-        res_grp = dpg.add_group(tag="res_grp")
-        dpg.add_text("Résultat :", parent="res_grp")
-    res = " => "
-    if csv_flag:
-        res += ".csv "
-    if json_flag:
-        res += ".json "
-    pg_val = 0.0
-    step = 1 / len(pages_to_export)
     start = datetime.now()
-    for page in pages_to_export:
-        # la barre de progression est mise à jour en fonction de la progression du scrap
-        dpg.set_value(title_popup, page[1])
-        dpg.configure_item(title_popup, color=(50, 150, 255, 255))
-        dpg.configure_item(pb, show=True)
-        dpg.configure_item(pb, overlay=str(int(pg_val * 100)) + "%")
-        pg_val += step
-        dpg.add_text(page[0] + res, parent=res_grp)
-        name = page[0].replace(" ", "_")
-        scraper.scrap(page[1], name, csv_flag, json_flag)
-        dpg.set_value(pb, value=pg_val)
+
+    if one_file:
+        with dpg.window(label="", width=240, height=100, no_resize=True, pos=(120, 80), on_close=exit_popup, modal=True):
+            title_popup = dpg.add_text("Scrap dans 1 fichier en cours...", tag="title_popup")
+            dpg.add_loading_indicator(tag="load", pos=(100, 50))
+        scraper.scrap(pages_to_export, csv_flag, json_flag, True)
+        time.sleep(5)
+        dpg.delete_item("load")
+    else:
+        # On crée une fenêtre pour afficher la progression du scrap et le résultat final
+        with dpg.window(label="", width=420, height=150, no_resize=True, pos=(35, 80), on_close=exit_popup, modal=True):
+            title_popup = dpg.add_text("Scrap en cours...", tag="title_popup")
+            pb = dpg.add_progress_bar(label="progress_bar", width=400, height=20, default_value=0)
+            res_grp = dpg.add_group(tag="res_grp")
+            dpg.add_text("Résultat :", parent="res_grp")
+        res = " => "
+        if csv_flag:
+            res += ".csv "
+        if json_flag:
+            res += ".json "
+        pg_val = 0.0
+        step = 1 / len(pages_to_export)
+        for page in pages_to_export:
+            # la barre de progression est mise à jour en fonction de la progression du scrap
+            dpg.set_value(title_popup, page[1])
+            dpg.configure_item(title_popup, color=(50, 150, 255, 255))
+            dpg.configure_item(pb, show=True)
+            dpg.configure_item(pb, overlay=str(int(pg_val * 100)) + "%")
+            pg_val += step
+            dpg.add_text(page[0] + res, parent=res_grp)
+            # name = page[0].replace(" ", "_")
+            scraper.scrap([page], csv_flag, json_flag, False)
+            dpg.set_value(pb, value=pg_val)
+            dpg.render_dearpygui_frame()
+        dpg.configure_item(pb, overlay="100%")
         dpg.render_dearpygui_frame()
     elapsed = datetime.now() - start
-    dpg.configure_item(pb, overlay="100%")
     dpg.set_value(title_popup, f"Scrap terminé en {int(elapsed.total_seconds())}s !")
     dpg.configure_item(title_popup, color=(0, 255, 0, 255))
-    dpg.render_dearpygui_frame()
 
 
 def test_cnx_callback(sender, app_data, user_data):
     global connected
     global links
     global init
+    global one_file
 
     test_return = scraper.test_cnx(url)
     cb_now = datetime.now()
@@ -229,6 +261,8 @@ def test_cnx_callback(sender, app_data, user_data):
         dpg.configure_item(btn_cust_cookie, show=True)
         dpg.configure_item(btn_cb_all, show=True)
         dpg.configure_item(btn_cb_none, show=True)
+        if len(links) == 9:
+            dpg.configure_item(cb_one_file, show=True)
         connected = True
         init = True
         # print("TEST_CNX_CALLBACK-1 INIT="+str(init))
@@ -247,6 +281,9 @@ def test_cnx_callback(sender, app_data, user_data):
         dpg.configure_item(btn_cust_cookie, show=False)
         dpg.configure_item(btn_cb_all, show=False)
         dpg.configure_item(btn_cb_none, show=False)
+        dpg.configure_item(cb_one_file, show=False)
+        dpg.set_value(cb_one_file, False)
+        one_file = False
         connected = False
         # print("TEST_CNX_CALLBACK-3 INIT="+str(init))
 
@@ -415,6 +452,8 @@ with dpg.window(tag="prim_win"):
                                 parent="grp_cb_btn", show=btn_cb_show, callback=btn_cb_all_callback)
     btn_cb_none = dpg.add_button(label="Aucun", tag="btn_cb_none", width=40, height=20,
                                  parent="grp_cb_btn", show=btn_cb_show, callback=btn_cb_none_callback)
+    cb_one_file = dpg.add_checkbox(label="1 seul fichier", tag="cb_one_file",
+                                   callback=cb_one_file_callback, parent="grp_cb_btn", show=False)
     with dpg.drawlist(width=500, height=30):
         dpg.draw_line((0, 5), (470, 5), color=(255, 0, 0, 255), thickness=1)
     dpg.add_radio_button(items=["CSV", "JSON", "CSV & JSON"],
