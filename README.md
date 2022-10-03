@@ -23,10 +23,11 @@ TP3 réalisé avec [skoll09](https://github.com/skoll09/ScrapPy)
   - checkbox (avec boutons tous/aucun)
   - lignes de séparation
   - boutons radio (csv, json, les 2)
-  - boutons (test cnx, scrap, exit)
+  - boutons (test cnx, scrap, exit) avec tooltip
   - fenêtres (headers, cookies)
+  - barre de progression
   - input texte
-- gestion du layout
+- gestion du layout (avec des groupes et zones fixes)
 - affichage des cookies de n'importe quel site
 - ajout d'un easter-egg
 - export du projet en exe (avec auto-py-to-exe en mode 1 fichier)
