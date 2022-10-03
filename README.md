@@ -31,4 +31,9 @@ TP3 réalisé avec [skoll09](https://github.com/skoll09/ScrapPy)
 - ajout d'un easter-egg
 - export du projet en exe (avec auto-py-to-exe en mode 1 fichier)
 
-![capture exe](/captures/scrappy.png "capture exe") ![capture exe deco](/captures/scrappy_no_cnx.png "capture exe deco")
+## Captures
+
+![capture exe](/captures/scrappy.png "capture exe") 
+
+
+![capture exe deco](/captures/scrappy_no_cnx.png "capture exe deco")
