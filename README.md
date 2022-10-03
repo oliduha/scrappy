@@ -28,6 +28,7 @@ TP3 réalisé avec [skoll09](https://github.com/skoll09/ScrapPy)
   - barre de progression
   - input texte
 - gestion du layout (avec des groupes et zones fixes)
+- modification du thème
 - affichage des cookies de n'importe quel site
 - ajout d'un easter-egg
 - export du projet en exe (avec auto-py-to-exe en mode 1 fichier)
