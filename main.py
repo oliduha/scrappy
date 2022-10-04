@@ -7,6 +7,7 @@ import time
 import dearpygui.dearpygui as dpg
 import sys
 import os
+import re
 
 
 def resource_path(relative_path):
@@ -96,17 +97,24 @@ def custom_cookies_callback():
 def get_custom_cookies_callback():
     # TODO Vérifier la syntax des urls entrées par l'utilisateur
     url_c = dpg.get_value("cust_cookies_url_input")
-    print(url_c)
-    # on récupère les cookies
-    cook = scraper.cookies(url_c)
-    dpg.delete_item("grp_cust_cookies_res", children_only=True)
-    if cook:
-        dpg.add_text("Cookies trouvés :", parent="grp_cust_cookies_res", color=(255, 0, 0, 255))
-        for line in cook:
-            dpg.add_text(line.name + " : " + line.value, parent="grp_cust_cookies_res")
+    # print(url_c)
+    # On vérifie si l'url saisie est correctement formatée
+    url_pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9() \
+                  @:%_\\+.~#?&\\/=]*)$"
+    if not re.match(url_pattern, url_c):  # Returns Match object
+        dpg.delete_item("grp_cust_cookies_res", children_only=True)
+        dpg.add_text("Erreur : Vérifiez l'url saisie...", tag="err_txt", parent="grp_cust_cookies_res", color=(255, 0, 0, 255))
     else:
-        dpg.add_text("Ce site ne comporte aucun cookie \n\n(Il respecte votre vie privée !)",
-                     color=(0, 255, 0, 255), parent="grp_cust_cookies_res")
+        # on récupère les cookies
+        cook = scraper.cookies(url_c)
+        dpg.delete_item("grp_cust_cookies_res", children_only=True)
+        if cook:
+            dpg.add_text("Cookies trouvés :", parent="grp_cust_cookies_res", color=(255, 0, 0, 255))
+            for line in cook:
+                dpg.add_text(line.name + " : " + line.value, parent="grp_cust_cookies_res")
+        else:
+            dpg.add_text("Ce site ne comporte aucun cookie \n\n(Il respecte votre vie privée !)",
+                         color=(0, 255, 0, 255), parent="grp_cust_cookies_res")
 
 
 def check_callback(sender, app_data, user_data):
