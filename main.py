@@ -96,7 +96,6 @@ def custom_cookies_callback():
 
 
 def get_custom_cookies_callback():
-    # TODO Vérifier la syntax des urls entrées par l'utilisateur
     url_c = dpg.get_value("cust_cookies_url_input")
     # print(url_c)
     # On vérifie si l'url saisie est correctement formatée
@@ -138,7 +137,6 @@ def check_callback(sender, app_data, user_data):
 
 
 def btn_cb_all_callback():
-    # TODO Ajouter la possibilité de ne créer qu'un seul fichier si toutes les pages sont sélectionnées
     global pages_to_export
     cbs = dpg.get_item_children(grp_checkbox)
     pages_to_export = []
