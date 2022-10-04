@@ -10,6 +10,7 @@ import os
 import re
 
 
+# Indispensable pour auto-py-to-exe en mode 1 fichier
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
