@@ -55,6 +55,7 @@ Base requise :
 - ajout d'un fichier requirements.txt pour faciliter l'installation de l'environnement
 (auto-py-to-exe non inclut)
 - ajout de la possibilité d'exporter dans 1 seul fichier si toutes les pages sont sélectionnée
+- récupération de tous les liens de n'importe quelle page web
 
 ## Captures
 
@@ -113,9 +114,10 @@ The basic requirements:
   - loading indicator
 - layout management (with groups and fixed zones)
 - theme modification
-- display of cookies from any website
+- retrieve all cookies from any website
 - verification (regex) of the user entered url
 - add an easter-egg
 - exported project to exe (with auto-py-to-exe in 1 file mode)
 - Requirements.txt added for easy dev environment config (auto-py-to-exe not include)
 - added ability to export in 1 file if all webpages selected
+- retrieve all links from any web page
