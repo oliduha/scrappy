@@ -4,6 +4,7 @@ try:
     import os
     import json
     import csv
+    import re
 
 except ImportError as e:
     print("Erreur d'import : " + str(e))
@@ -12,7 +13,7 @@ except ImportError as e:
     import os
     import json
     import csv
-
+    import re
 
 # cf : https://stackoverflow.com/questions/287871/how-do-i-print-colored-text-to-the-terminal
 col_red = '\033[91m'
@@ -108,12 +109,12 @@ def prepare_scv(lst_a, csv_file_name):
 def create_scv(data, csv_file_name):
     csv_file_name = csv_file_name.replace(" ", "_")
     # On écrit dans le fichier csv les éléments de chaque ligne
-    with open("exports/csv/"+csv_file_name+'.csv', 'w', newline='', encoding='utf8') as csvfile:
+    with open("exports/csv/" + csv_file_name + '.csv', 'w', newline='', encoding='utf8') as csvfile:
         writer = csv.writer(csvfile, delimiter=';')
         for row in data:
             writer.writerow(row)
 
-    print(col_green + "Fichier "+csv_file_name+".csv créé !" + col_end)
+    print(col_green + "Fichier " + csv_file_name + ".csv créé !" + col_end)
 
 
 def prepare_json(list_tr, json_file_name):
@@ -149,10 +150,10 @@ def create_json(dict_json, json_file_name):
         os.makedirs("exports/json")
 
     # On écrit dans le fichier json les éléments de dict_json
-    with open("exports/json/"+json_file_name+'.json', 'w', encoding='utf8') as jsonfile:
+    with open("exports/json/" + json_file_name + '.json', 'w', encoding='utf8') as jsonfile:
         json.dump(dict_json, jsonfile, indent=4)
 
-    print(col_green + "Fichier "+json_file_name+".json créé !" + col_end)
+    print(col_green + "Fichier " + json_file_name + ".json créé !" + col_end)
 
 
 def test_cnx(url_cnx):
@@ -160,15 +161,15 @@ def test_cnx(url_cnx):
     try:
         req_test = requests.get(url_cnx)
     except requests.ConnectionError as er:
-        print(col_red+"\nErreur : Vérifiez votre connexion à Internet."+col_end)
+        print(col_red + "\nErreur : Vérifiez votre connexion à Internet." + col_end)
         print(str(er))
         return False
     except requests.Timeout as er:
-        print(col_red+"Erreur : Timeout."+col_end)
+        print(col_red + "Erreur : Timeout." + col_end)
         print(str(er))
         return False
     except requests.RequestException as er:
-        print(col_red+"Erreur générale."+col_end)
+        print(col_red + "Erreur générale." + col_end)
         print(str(er))
         return False
     except KeyboardInterrupt:
@@ -202,6 +203,50 @@ def cookies(url_c):
     for cok in req_c.cookies:
         print(cok)
     return req_c.cookies
+
+
+def all_links(url_l):
+    try:
+        req_l = requests.get(url_l)
+    except requests.ConnectionError as e:
+        print(f"{col_red}\nErreur ! Vérifiez l'URL saisie :{col_end}")
+        print(str(e))
+        return {"ERREUR": "Vérifiez l'URL saisie"}
+    except requests.Timeout as e:
+        print(f"{col_red}\nErreur ! Timeout :{col_end}")
+        print(str(e))
+        return {"ERREUR": "Timeout"}
+    except requests.RequestException as e:
+        print(f"{col_red}\nErreur générale :{col_end}")
+        print(str(e))
+        return {"ERREUR": "Générale"}
+    except KeyboardInterrupt:
+        print(f"{col_yellow}\nLe programme a été fermé{col_end}")
+        return {"ERREUR": "Le programme a été fermé"}
+    except Exception as e:
+        print("Erreur inconnue !" + str(e))
+        return {"ERREUR": "inconnue"}
+
+    print()
+    print(f"{col_yellow}Liens : {col_end}")
+    dict_links = {}
+
+    # On parse le html avec BeautifulSoup
+    page = bs4.BeautifulSoup(req_l.content, "html.parser").find("body")
+    list_links = page.findAll('a')  # On récupère toutes les balises <a> de la page
+    for link in list_links:
+        url_pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9() \
+                  @:%_\\+.~#?&\\/=]*)$"
+        if link.string is None:
+            link.string = "N.A."
+        # On vérifie si URL est correcte
+        if re.match(url_pattern, link["href"]):
+            dict_links[link.string] = link["href"]
+    nbl = 0
+    for key in dict_links:
+        nbl += 1
+        print(f"{nbl}-[{key}] {dict_links[key]}")
+    return dict_links
 
 
 # Oli ############

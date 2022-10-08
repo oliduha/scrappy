@@ -23,6 +23,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+# Variables globales
 url = 'https://www.frameip.com/liste-des-ports-tcp-udp/'
 list_titre = []
 list_b = []
@@ -97,13 +98,13 @@ def custom_cookies_callback():
 
 def get_custom_cookies_callback():
     url_c = dpg.get_value("cust_cookies_url_input")
-    # print(url_c)
     # On vérifie si l'url saisie est correctement formatée
     url_pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9() \
                   @:%_\\+.~#?&\\/=]*)$"
     if not re.match(url_pattern, url_c):  # Returns Match object
         dpg.delete_item("grp_cust_cookies_res", children_only=True)
-        dpg.add_text("Erreur : Vérifiez l'url saisie...", tag="err_txt", parent="grp_cust_cookies_res", color=(255, 0, 0, 255))
+        dpg.add_text("Erreur : Vérifiez l'url saisie...", tag="err_txt", parent="grp_cust_cookies_res",
+                     color=(255, 0, 0, 255))
     else:
         # on récupère les cookies
         cook = scraper.cookies(url_c)
@@ -115,6 +116,50 @@ def get_custom_cookies_callback():
         else:
             dpg.add_text("Ce site ne comporte aucun cookie \n\n(Il respecte votre vie privée !)",
                          color=(0, 255, 0, 255), parent="grp_cust_cookies_res")
+
+
+def all_links_callback():
+    with dpg.window(label="", width=435, height=300, no_resize=True, pos=(25, 80), on_close=exit_popup, modal=True,
+                    tag="get_all_links_window", horizontal_scrollbar=True):
+        dpg.add_text("Entrer une url pour y chercher les liens", color=(255, 255, 0, 255))
+        dpg.add_group(tag="grp_all_links")
+        dpg.add_group(tag="grp_all_links_inp", parent="grp_all_links", horizontal=True, horizontal_spacing=10)
+        dpg.add_text("URL :", parent="grp_all_links_inp")
+        all_links_url_input = dpg.add_input_text(tag="all_links_url_input", parent="grp_all_links_inp",
+                                                 default_value="https://www.frameip.com",
+                                                 width=320, hint="https://www.frameip.com")
+        dpg.add_button(tag="get_all_links", label="ok",
+                       width=26, height=20, parent="grp_all_links_inp",
+                       callback=get_all_links_callback, user_data=dpg.get_value(all_links_url_input))
+        dpg.add_group(tag="grp_all_links_res", parent="grp_all_links")
+
+
+def get_all_links_callback(sender):
+    dpg.delete_item("grp_all_links_res", children_only=True)
+    url_l = dpg.get_value("all_links_url_input")
+    # On vérifie si l'URL saisie est correctement formatée
+    url_pattern = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9() \
+                  @:%_\\+.~#?&\\/=]*)$"
+    nbl = 0
+    if not re.match(url_pattern, url_l):  # Returns Match object
+        dpg.add_text("ERREUR : URL saisie mal formée...", tag="err_txt", parent="grp_all_links_res",
+                     color=(255, 0, 0, 255))
+    else:
+        dpg.add_loading_indicator(tag="load", radius=10, pos=(150, 100),
+                                  parent="grp_all_links_res")  # width=234, height=234,
+        # on récupère les liens
+        dict_links = scraper.all_links(url_l)
+        dpg.delete_item("load")
+        if len(dict_links) == 1 and "ERREUR" in dict_links:
+            dpg.add_text(f"ERREUR : {dict_links['ERREUR']}", parent="grp_all_links_res", color=(255, 0, 0, 255))
+        elif dict_links:
+            dpg.add_text("Liens trouvés :", parent="grp_all_links_res", color=(0, 255, 0, 255))
+            for key in dict_links:
+                nbl += 1
+                dpg.add_text(f"{nbl}-[{key}] {dict_links[key]}", parent="grp_all_links_res", color=(50, 150, 255, 255))
+        else:
+            dpg.add_text("Cette page ne comporte aucun lien valide !)",
+                         parent="grp_all_links_res", color=(255, 0, 0, 255))
 
 
 def check_callback(sender, app_data, user_data):
@@ -190,11 +235,11 @@ def scrap_callback():
     start = datetime.now()
 
     if one_file:
-        with dpg.window(label="", width=240, height=100, no_resize=True, pos=(120, 80), on_close=exit_popup, modal=True):
+        with dpg.window(label="", width=240, height=100, no_resize=True, pos=(120, 80), on_close=exit_popup,
+                        modal=True):
             title_popup = dpg.add_text("Scrap dans 1 fichier en cours...", tag="title_popup")
             dpg.add_loading_indicator(tag="load", pos=(100, 50))
         scraper.scrap(pages_to_export, csv_flag, json_flag, True)
-        time.sleep(5)
         dpg.delete_item("load")
     else:
         # On crée une fenêtre pour afficher la progression du scrap et le résultat final
@@ -295,7 +340,7 @@ def test_cnx_callback(sender, app_data, user_data):
         # print("TEST_CNX_CALLBACK-3 INIT="+str(init))
 
 
-def dec_():
+def dec_ea():
     db = base64.b64decode(b).decode('utf-8')
     dpg.get_value(status_bar_txt)
     dpg.configure_item(status_bar_txt, default_value=db, color=(255, 128, 0, 255))
@@ -410,7 +455,7 @@ else:
 with dpg.window(tag="prim_win"):
     dpg.add_text(default_value="Page web : " + url, color=(50, 150, 255, 255))
     dpg.add_image(pos=(455, 9), texture_tag=led_tex, tag="led")
-    dpg.add_button(pos=(-3, 9), callback=dec_, user_data=b)
+    dpg.add_button(pos=(-3, 9), callback=dec_ea, user_data=b)
     with dpg.drawlist(width=500, height=10):
         dpg.draw_line((0, 5), (470, 5), color=(60, 60, 60, 255), thickness=1)
     grp_grp_cb = dpg.add_group(tag="grp_grp_cb", horizontal=True)
@@ -429,23 +474,23 @@ with dpg.window(tag="prim_win"):
                              user_data=[label, href])
         n += 1
     dpg.add_group(tag="grp_grp_btn", parent="grp_grp_cb")
-    dpg.add_drawlist(width=200, height=16, parent="grp_grp_btn")
+    dpg.add_drawlist(width=200, height=2, parent="grp_grp_btn")
     btn_header = dpg.add_button(label="Afficher les headers",
                                 callback=header_callback,
                                 tag="btn_headers",
-                                width=150, height=50,
+                                width=150, height=30,
                                 parent="grp_grp_btn",
                                 indent=70,
                                 show=btn_head_cook_show)
-    dpg.add_drawlist(width=200, height=10, parent="grp_grp_btn")
+    dpg.add_drawlist(width=200, height=5, parent="grp_grp_btn")
     btn_cookie = dpg.add_button(label="Afficher les cookies",
                                 callback=cookies_callback,
                                 tag="btn_cookies",
-                                width=150, height=50,
+                                width=150, height=30,
                                 parent="grp_grp_btn",
                                 indent=70,
                                 show=btn_head_cook_show)
-    dpg.add_drawlist(width=200, height=10, parent="grp_grp_btn")
+    dpg.add_drawlist(width=200, height=5, parent="grp_grp_btn")
     btn_cust_cookie = dpg.add_button(label="Afficher les cookies\n\n   d'un autre site",
                                      callback=custom_cookies_callback,
                                      tag="btn_cust_cookies",
@@ -453,6 +498,14 @@ with dpg.window(tag="prim_win"):
                                      parent="grp_grp_btn",
                                      indent=70,
                                      show=btn_head_cook_show)
+    dpg.add_drawlist(width=200, height=5, parent="grp_grp_btn")
+    btn_get_links = dpg.add_button(label="Afficher les liens\n\n  d'une page web",
+                                   callback=all_links_callback,
+                                   tag="btn_get_all_links",
+                                   width=150, height=50,
+                                   parent="grp_grp_btn",
+                                   indent=70,
+                                   show=btn_head_cook_show)
     grp_cb_btn = dpg.add_group(tag="grp_cb_btn", horizontal=True, horizontal_spacing=10)
     dpg.add_drawlist(width=0, height=17, parent="grp_cb_btn")
     btn_cb_all = dpg.add_button(label="Tous", tag="btn_cb_all", indent=18, width=40, height=20,
@@ -527,7 +580,7 @@ dpg.bind_theme(global_theme)
 
 # Viewport (fenêtre de l'OS - conteneur principal) et initialisations de l'interface graphique
 b = 'T24gbmHDrnQgdG91cyDDqWdhdXgsIG1haXMgY2VydGFpbnMgcGx1cyBxdWUgZCdhdXRyZXMuLi4='
-dpg.create_viewport(title='ScrapPy v0.1.42 beta={Tp3: ["by", "Bryan", "&", "Olivier"]}',
+dpg.create_viewport(title='ScrapPy v0.1.43 beta={Tp3: ["by", "Bryan", "&", "Olivier"]}',
                     width=500, height=510, resizable=False, vsync=True)
 dpg.setup_dearpygui()
 dpg.show_viewport()
