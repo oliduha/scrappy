@@ -1,8 +1,8 @@
 __pycache__
+venv/
+.idea/
 backup/
 exports/
 html_files/
-output/
-venv/
-.idea/
+exe_output/
 robots.txt
