@@ -53,7 +53,7 @@ Base requise :
 - ajout d'un easter-egg
 - export du projet en exe (avec auto-py-to-exe en mode 1 fichier)
 - ajout d'un fichier requirements.txt pour faciliter l'installation de l'environnement
-(auto-py-to-exe non inclut)
+(auto-py-to-exe non inclu)
 - ajout de la possibilité d'exporter dans 1 seul fichier si toutes les pages sont sélectionnée
 - récupération de tous les liens de n'importe quelle page web
 
