@@ -46,7 +46,7 @@ Il ne reste plus qu'à adapter cette configuration à votre environnement :
 - Tout en haut de la fenêtre, à "Emplacement des scripts", sélectionner le fichier ``main.py`` du projet
 avec le bouton "Navigateur".
 - Conserver l'option "Un fichier".
-- Conserver l'option "Basé sur windows (la console n'est pas visible"
+- Conserver l'option "Basé sur windows (la console n'est pas visible)
 - À la section **"Icone"**, indiquer le fichier d'icône ``scrappy.ico`` se trouvant 
 dans le sous-dossier ``img`` du projet en cliquant sur le bouton "Navigateur".
 
